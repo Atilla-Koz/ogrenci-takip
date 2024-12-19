@@ -14,9 +14,9 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <img 
-              src="/calendar-icon.svg" 
-              alt="Calendar" 
-              className="h-8 w-8"
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMcNuW4qncTOPcpL6A0_loiMquseJ-suOdSg&s" 
+              alt="Calendar Logo" 
+              className="h-10 w-10 object-contain"
             />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {t('calendar.title')}

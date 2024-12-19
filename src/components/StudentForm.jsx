@@ -9,25 +9,15 @@ function StudentForm({ isOpen, onClose, onSubmit, initialValues }) {
   const { t } = useLanguage()
 
   const validationSchema = Yup.object({
+    studentId: Yup.string().required(t('studentForm.validation.required.studentId')),
     firstName: Yup.string().required(t('studentForm.validation.required.firstName')),
     lastName: Yup.string().required(t('studentForm.validation.required.lastName')),
     startDate: Yup.date().required(t('studentForm.validation.required.startDate')),
-    endDate: Yup.date().when('hasNoEndDate', {
-      is: false,
-      then: () => Yup.date()
-        .required(t('studentForm.validation.required.endDate'))
-        .min(Yup.ref('startDate'), t('studentForm.validation.endDateAfterStart')),
-      otherwise: () => Yup.date().nullable()
-    }),
-    hasNoEndDate: Yup.boolean(),
     isRecurring: Yup.boolean(),
     frequency: Yup.string().when('isRecurring', {
       is: true,
       then: () => Yup.string().required(t('studentForm.validation.required.frequency'))
-    }),
-    lessonDuration: Yup.number()
-      .required(t('studentForm.validation.required.lessonDuration'))
-      .min(1, t('studentForm.validation.minDuration'))
+    })
   })
 
   return (
@@ -66,11 +56,10 @@ function StudentForm({ isOpen, onClose, onSubmit, initialValues }) {
 
                 <Formik
                   initialValues={initialValues || {
+                    studentId: '',
                     firstName: '',
                     lastName: '',
                     startDate: '',
-                    endDate: '',
-                    hasNoEndDate: false,
                     isRecurring: false,
                     frequency: 'weekly',
                     lessonDuration: 1
@@ -81,6 +70,20 @@ function StudentForm({ isOpen, onClose, onSubmit, initialValues }) {
                 >
                   {({ errors, touched, values }) => (
                     <Form className="space-y-4">
+                      <div>
+                        <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {t('studentForm.fields.studentId')}
+                        </label>
+                        <Field
+                          name="studentId"
+                          type="text"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                        />
+                        {errors.studentId && touched.studentId && (
+                          <div className="text-red-500 text-sm mt-1">{errors.studentId}</div>
+                        )}
+                      </div>
+
                       <div>
                         <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
                           {t('studentForm.fields.firstName')}
@@ -110,43 +113,16 @@ function StudentForm({ isOpen, onClose, onSubmit, initialValues }) {
                       </div>
 
                       <div>
-                        <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-                          Başlangıç Tarihi
+                        <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {t('studentForm.fields.startDate')}
                         </label>
                         <Field
                           name="startDate"
                           type="datetime-local"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500"
                         />
                         {errors.startDate && touched.startDate && (
                           <div className="text-red-500 text-sm mt-1">{errors.startDate}</div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="flex items-center space-x-2 mb-2">
-                          <Field
-                            type="checkbox"
-                            name="hasNoEndDate"
-                            className="rounded border-gray-300"
-                          />
-                          <span className="text-sm font-medium text-gray-700">Süresiz Ders</span>
-                        </label>
-
-                        {!values.hasNoEndDate && (
-                          <>
-                            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-                              Bitiş Tarihi
-                            </label>
-                            <Field
-                              name="endDate"
-                              type="datetime-local"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                            {errors.endDate && touched.endDate && (
-                              <div className="text-red-500 text-sm mt-1">{errors.endDate}</div>
-                            )}
-                          </>
                         )}
                       </div>
 
@@ -155,25 +131,27 @@ function StudentForm({ isOpen, onClose, onSubmit, initialValues }) {
                           <Field
                             type="checkbox"
                             name="isRecurring"
-                            className="rounded border-gray-300"
+                            className="rounded border-gray-300 dark:border-gray-600 text-purple-600"
                           />
-                          <span className="text-sm font-medium text-gray-700">Tekrarlanan Ders</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {t('studentForm.fields.recurring')}
+                          </span>
                         </label>
                       </div>
 
                       {values.isRecurring && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Tekrar Sıklığı
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {t('studentForm.fields.frequency')}
                           </label>
                           <Field
                             as="select"
                             name="frequency"
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-purple-500 focus:ring-purple-500"
                           >
-                            <option value="weekly">Haftalık</option>
-                            <option value="biweekly">İki Haftada Bir</option>
-                            <option value="monthly">Aylık</option>
+                            <option value="weekly">{t('studentForm.frequency.weekly')}</option>
+                            <option value="biweekly">{t('studentForm.frequency.biweekly')}</option>
+                            <option value="monthly">{t('studentForm.frequency.monthly')}</option>
                           </Field>
                           {errors.frequency && touched.frequency && (
                             <div className="text-red-500 text-sm mt-1">{errors.frequency}</div>

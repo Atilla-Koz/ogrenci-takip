@@ -60,13 +60,9 @@ const locales = {
 function App({ teacherMode = false, teacherId = null }) {
   const { t, language } = useLanguage()
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [lessons, setLessons] = useState(() => {
-    const savedLessons = localStorage.getItem('lessons')
-    return savedLessons ? JSON.parse(savedLessons) : []
-  })
-  const [currentView, setCurrentView] = useState('calendar') // 'calendar' veya 'students'
+  const { currentUser, isAdmin, studentView, lessons, setLessons } = useAuth()
+  const [currentView, setCurrentView] = useState('calendar')
   const [editingLesson, setEditingLesson] = useState(null)
-  const { currentUser, isAdmin } = useAuth()
 
   useEffect(() => {
     localStorage.setItem('lessons', JSON.stringify(lessons))
@@ -75,17 +71,16 @@ function App({ teacherMode = false, teacherId = null }) {
   const generateRecurringLessons = (lessonData) => {
     const lessons = []
     const startDate = new Date(lessonData.startDate)
-    const endDate = lessonData.hasNoEndDate 
-      ? new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate()) // Varsayılan olarak 1 yıl
-      : new Date(lessonData.endDate)
+    const endDate = new Date(startDate)
+    endDate.setMonth(endDate.getMonth() + 6) // 6 aylık tekrar
     let currentDate = startDate
 
     while (currentDate <= endDate) {
       const lessonEnd = new Date(currentDate)
-      lessonEnd.setHours(lessonEnd.getHours() + lessonData.lessonDuration)
+      lessonEnd.setHours(currentDate.getHours() + 1) // Her ders 1 saat
 
       lessons.push({
-        id: Date.now() + lessons.length, // Benzersiz ID oluştur
+        id: Date.now() + lessons.length,
         teacherId: lessonData.teacherId,
         title: `${lessonData.firstName} ${lessonData.lastName}`,
         start: new Date(currentDate),
@@ -111,13 +106,20 @@ function App({ teacherMode = false, teacherId = null }) {
   }
 
   const handleAddLesson = (lessonData) => {
-    const currentTeacherId = teacherId || currentUser.id // Öğretmen ID'sini al
+    const currentTeacherId = teacherId || currentUser.id
+    const startDate = new Date(lessonData.startDate)
+    const endDate = new Date(startDate)
+    endDate.setHours(startDate.getHours() + 1)
 
     const newLesson = {
       id: Date.now(),
-      teacherId: currentTeacherId, // Öğretmen ID'sini ekle
+      teacherId: currentTeacherId,
+      studentId: lessonData.studentId ? Number(lessonData.studentId) : null,
       ...lessonData,
       title: `${lessonData.firstName} ${lessonData.lastName}`,
+      start: startDate,
+      end: endDate,
+      lessonDuration: 1
     }
 
     if (lessonData.isRecurring) {
@@ -128,21 +130,14 @@ function App({ teacherMode = false, teacherId = null }) {
       setLessons([...lessons, ...recurringLessons.map(lesson => ({
         ...lesson,
         teacherId: currentTeacherId,
+        studentId: lessonData.studentId ? Number(lessonData.studentId) : null,
         firstName: lessonData.firstName,
         lastName: lessonData.lastName,
         isRecurring: true,
-        frequency: lessonData.frequency,
-        lessonDuration: lessonData.lessonDuration
+        frequency: lessonData.frequency
       }))])
     } else {
-      const lessonEnd = new Date(lessonData.startDate)
-      lessonEnd.setHours(lessonEnd.getHours() + lessonData.lessonDuration)
-
-      setLessons([...lessons, {
-        ...newLesson,
-        start: new Date(lessonData.startDate),
-        end: lessonEnd,
-      }])
+      setLessons([...lessons, newLesson])
     }
     setIsFormOpen(false)
   }
@@ -172,6 +167,13 @@ function App({ teacherMode = false, teacherId = null }) {
     locales: { [language]: locales[language] }
   })
 
+  // Event başlığını özelleştirme
+  const formats = {
+    eventTimeRangeFormat: () => '', // Saat aralığını gizle
+    timeGutterFormat: (date, culture, localizer) =>
+      localizer.format(date, 'HH:mm', culture),
+  }
+
   // Admin paneli gösterimi
   if (currentUser && isAdmin && !teacherMode) {
     return <AdminPanel />
@@ -183,9 +185,58 @@ function App({ teacherMode = false, teacherId = null }) {
   }
 
   // Dersleri filtreleme (admin için öğretmen bazlı)
-  const filteredLessons = teacherMode 
+  const filteredLessons = (teacherMode 
     ? lessons.filter(lesson => lesson.teacherId === teacherId)
     : lessons.filter(lesson => lesson.teacherId === currentUser.id)
+  ).map(lesson => ({
+    ...lesson,
+    start: new Date(lesson.start), // String tarihleri Date objesine çeviriyoruz
+    end: new Date(lesson.end)
+  }))
+
+  // Öğrenci görünümü için
+  if (studentView) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto p-4">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div className="mb-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {`Öğrenci No: ${studentView.studentId}`}
+              </h2>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+              >
+                Çıkış
+              </button>
+            </div>
+            <Calendar
+              localizer={localizer}
+              events={studentView.lessons}
+              startAccessor="start"
+              endAccessor="end"
+              style={{ height: 'calc(100vh - 200px)' }}
+              culture={language}
+              messages={messages[language]}
+              views={['month', 'week', 'day']}
+              defaultView="month"
+              min={new Date(2024, 0, 1, 7, 0, 0)}
+              max={new Date(2024, 0, 1, 23, 0, 0)}
+              formats={formats}
+              components={{
+                event: (props) => (
+                  <div className="text-white text-sm p-1 truncate">
+                    Ders
+                  </div>
+                )
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -237,6 +288,19 @@ function App({ teacherMode = false, teacherId = null }) {
                 culture={language}
                 messages={messages[language]}
                 views={['month', 'week', 'day', 'agenda']}
+                defaultView="month"
+                min={new Date(2024, 0, 1, 7, 0, 0)}
+                max={new Date(2024, 0, 1, 23, 0, 0)}
+                step={60}
+                timeslots={1}
+                formats={formats}
+                components={{
+                  event: (props) => (
+                    <div className="text-white text-sm p-1 truncate">
+                      {`${props.event.firstName} ${props.event.lastName}`}
+                    </div>
+                  )
+                }}
               />
             ) : (
               <StudentList 

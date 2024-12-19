@@ -18,7 +18,8 @@ export default {
       noEndDate: "Süresiz Ders",
       recurring: "Tekrarlanan Ders",
       frequency: "Tekrar Sıklığı",
-      lessonDuration: "Ders Süresi (Saat)"
+      lessonDuration: "Ders Süresi (Saat)",
+      studentId: "Öğrenci No"
     },
     frequency: {
       weekly: "Haftalık",
@@ -36,7 +37,8 @@ export default {
         lastName: "Soyisim gerekli",
         startDate: "Başlangıç tarihi gerekli",
         endDate: "Bitiş tarihi gerekli",
-        frequency: "Tekrar sıklığı gerekli"
+        frequency: "Tekrar sıklığı gerekli",
+        studentId: "Öğrenci no gerekli"
       },
       endDateAfterStart: "Bitiş tarihi başlangıç tarihinden sonra olmalı",
       minDuration: "Ders süresi en az 1 saat olmalı"
@@ -60,7 +62,13 @@ export default {
     email: 'E-posta',
     password: 'Şifre',
     signIn: 'Giriş Yap',
-    invalidCredentials: 'Geçersiz e-posta veya şifre'
+    invalidCredentials: 'Geçersiz e-posta veya şifre',
+    teacherLogin: 'Öğretmen Girişi',
+    studentQuery: 'Öğrenci Sorgula',
+    queryTitle: 'Ders Programı Sorgula',
+    studentId: 'Öğrenci No',
+    queryButton: 'Sorgula',
+    studentIdRequired: 'Öğrenci no gerekli'
   },
   header: {
     logout: 'Çıkış Yap'

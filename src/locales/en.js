@@ -18,7 +18,8 @@ export default {
       noEndDate: "No End Date",
       recurring: "Recurring Lesson",
       frequency: "Frequency",
-      lessonDuration: "Lesson Duration (Hours)"
+      lessonDuration: "Lesson Duration (Hours)",
+      studentId: "Student ID"
     },
     frequency: {
       weekly: "Weekly",
@@ -36,7 +37,8 @@ export default {
         lastName: "Last name is required",
         startDate: "Start date is required",
         endDate: "End date is required",
-        frequency: "Frequency is required"
+        frequency: "Frequency is required",
+        studentId: "Student ID is required"
       },
       endDateAfterStart: "End date must be after start date",
       minDuration: "Lesson duration must be at least 1 hour"
@@ -60,7 +62,13 @@ export default {
     email: 'Email',
     password: 'Password',
     signIn: 'Sign In',
-    invalidCredentials: 'Invalid email or password'
+    invalidCredentials: 'Invalid email or password',
+    teacherLogin: 'Teacher Login',
+    studentQuery: 'Student Query',
+    queryTitle: 'Query Lesson Schedule',
+    studentId: 'Student ID',
+    queryButton: 'Query',
+    studentIdRequired: 'Student ID is required'
   },
   header: {
     logout: 'Logout'
