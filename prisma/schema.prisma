@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  name     String
+  role     Role     @default(TEACHER)
+  lessons  Lesson[]
+}
+
+model Student {
+  id        Int      @id @default(autoincrement())
+  studentId String   @unique
+  firstName String
+  lastName  String
+  lessons   Lesson[]
+}
+
+model Lesson {
+  id          Int      @id @default(autoincrement())
+  teacher     User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherId   Int
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId   Int
+  startDate   DateTime
+  endDate     DateTime
+  isRecurring Boolean  @default(false)
+  frequency   String?
+
+  @@index([teacherId])
+  @@index([studentId])
+}
